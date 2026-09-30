@@ -126,11 +126,13 @@ function renderItems() {
     const margin = num(it.cost) > 0 ? `<span class="margin">you earn ${money(num(it.qty) * (num(it.price) - num(it.cost)))}</span>` : '';
     return `<div class="item" data-i="${n}">
       <div class="top"><input data-f="name" value="${esc(it.name)}" placeholder="Name of this line"><button class="x" data-del title="Remove">✕</button></div>
-      <div class="calc">
+      ${it.unit === 'fixed' ? `<div class="calc"><span>Fixed price</span>
+        <span class="dollar"><input type="number" step="any" data-f="price" value="${it.price}"></span>
+        <b data-tot>${money(num(it.qty) * num(it.price))}</b></div>` : `<div class="calc">
         <input type="number" step="any" data-f="qty" value="${it.qty}"><span>${hrs ? 'hours' : esc(it.unit)} ×</span>
         <span class="dollar"><input type="number" step="any" data-f="price" value="${it.price}"></span><span>${hrs ? '/hr' : 'each'}</span>
         <b data-tot>${money(num(it.qty) * num(it.price))}</b>
-      </div>
+      </div>`}
       <div class="meta">${margin}<button class="tog" data-more>${open ? 'Hide details ▴' : 'Details ▾'}</button></div>
       <div class="extra" ${open ? '' : 'hidden'}>
         <label>Description shown to client <em>(what was used, which tool…)</em><textarea data-f="desc" rows="2">${esc(it.desc)}</textarea></label>
@@ -169,6 +171,25 @@ function loadExample() {
 function modal(html, mount) { $('#dlgBody').innerHTML = html; mount && mount($('#dlgBody')); dlg.showModal(); }
 
 /* ---------- add: my time ---------- */
+/* ---------- add: fixed price (no hours) ---------- */
+$('#aFixed').onclick = () => {
+  const ideas = ['Website design & development', 'Landing page', 'Portfolio website', 'Logo & branding', 'Website redesign', 'Monthly maintenance'];
+  modal(`<h3>💰 Fixed price</h3>
+    <p class="hint">Charge one flat amount — no hours shown to the client.</p>
+    <div class="chips">${ideas.map(t => `<span class="chip" data-t="${esc(t)}">${esc(t)}</span>`).join('')}</div>
+    <label>What is it for?<input id="fName" placeholder="e.g. Website design & development"></label>
+    <label>Price<span class="dollar"><input id="fPrice" type="number" step="any" placeholder="15000"></span></label>
+    <label>Short description <em>(optional, shown under the name)</em><textarea id="fDesc" rows="2"></textarea></label>
+    <button class="btn primary" id="fAdd">Add to quote</button>`, m => {
+    m.onclick = e => { if (e.target.dataset.t) $('#fName', m).value = e.target.dataset.t; };
+    $('#fAdd', m).onclick = () => {
+      S.items.push({ id: uid(), cat: 'Services', name: $('#fName', m).value || 'Project', desc: $('#fDesc', m).value, qty: 1, unit: 'fixed', price: num($('#fPrice', m).value), cost: 0 });
+      renderItems(); refresh(); toast('Added ✓'); dlg.close();
+    };
+    $('#fName', m).focus();
+  });
+};
+
 $('#aTime').onclick = () => {
   const tasks = CATALOG.filter(c => c.hrs != null);
   modal(`<h3>⏱ Add my time</h3>
@@ -292,7 +313,7 @@ function renderDoc() {
     const sub = its.reduce((x, i) => x + num(i.qty) * num(i.price), 0);
     return `<tr class="grp"><td colspan="3">${esc(cat)}</td><td colspan="1"></td><td class="n">${money(sub)}</td></tr>` +
       its.map(i => `<tr><td><div class="nm">${esc(i.name) || '—'}</div>${i.desc ? `<div class="ds">${esc(i.desc)}</div>` : ''}</td>
-      <td class="n">${hmm(num(i.qty))} ${esc(i.unit)}</td><td class="n" colspan="2">${money(i.price)}${i.unit === 'hrs' ? '/h' : ''}</td><td class="n"><b>${money(num(i.qty) * num(i.price))}</b></td></tr>`).join('');
+      <td class="n">${i.unit === 'fixed' ? 'Fixed' : hmm(num(i.qty)) + ' ' + esc(i.unit)}</td><td class="n" colspan="2">${i.unit === 'fixed' ? '—' : money(i.price) + (i.unit === 'hrs' ? '/h' : '')}</td><td class="n"><b>${money(num(i.qty) * num(i.price))}</b></td></tr>`).join('');
   }).join('');
   const ms = lines(S.milestones).map(l => l.split('|').map(x => x.trim()));
   $('#doc').style.setProperty('--a', a);

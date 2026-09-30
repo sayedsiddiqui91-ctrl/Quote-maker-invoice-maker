@@ -237,3 +237,4 @@ dialog::backdrop{z-index:10}
 .d-logo img{height:16mm;max-width:20mm}
 .d-brand{font:700 21pt/1.05 'Space Grotesk';letter-spacing:-.01em;text-transform:none}
 .d-brand small{font:500 7.5pt Inter;letter-spacing:.14em;margin-top:1.6mm}
+.add.wide{grid-column:1/-1}
