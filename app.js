@@ -64,11 +64,12 @@ const DEFAULT = () => ({
   terms: '• Work begins once the deposit is received.\n• Prices valid for the period stated above.\n• Additional revisions and scope changes are billed at the hourly rate.\n• Third-party asset costs are billed as listed and licences are transferred on final payment.\n• Final files and access are handed over upon full payment.',
   notes: 'Thanks for trusting us to break the default. Let\'s build something that doesn\'t look like everyone else.',
   from: { name: 'Break the Default', tag: 'Websites that refuse to blend in', email: '', web: '' },
-  settings: { rate: 25, markup: 25, accent: '#c6ff3d' },
+  settings: { rate: 25, markup: 25, accent: '#D4FF62' },
 });
 
 let S = load('btd-current') || DEFAULT();
 S.cur ||= 'USD'; S.fx ||= 122;
+const MARK_IMG = 'break-the-default-logo/mark-lime.svg';
 let logo = localStorage.getItem('btd-logo') || '';
 let custom = JSON.parse(localStorage.getItem('btd-custom') || '[]');
 let catFilter = 'All';
@@ -286,7 +287,7 @@ function renderDoc() {
   const lines = s => String(s || '').split('\n').map(x => x.trim()).filter(Boolean);
   const validUntil = (() => { const d = new Date(S.date); d.setDate(d.getDate() + num(S.validDays)); return d.toISOString().slice(0, 10); })();
   const fmtD = d => d ? new Date(d + 'T00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
-  const logoHtml = logo ? `<img src="${logo}" alt="logo">` : MARK(a);
+  const logoHtml = `<img src="${logo || MARK_IMG}" alt="Break the Default logo">`;
   const rows = Object.entries(groups).map(([cat, its]) => {
     const sub = its.reduce((x, i) => x + num(i.qty) * num(i.price), 0);
     return `<tr class="grp"><td colspan="3">${esc(cat)}</td><td colspan="1"></td><td class="n">${money(sub)}</td></tr>` +
@@ -344,7 +345,7 @@ function syncFields() {
   $$('#typeSeg button').forEach(b => b.classList.toggle('on', b.dataset.type === S.type));
   $('#lblValid').style.display = inv ? 'none' : ''; $('#lblDue').style.display = inv ? '' : 'none';
   $('#lblStatus').style.display = inv ? '' : 'none'; $('#lblPaid').style.display = inv ? '' : 'none';
-  $('#miniMark').innerHTML = MARK(S.settings.accent);
+  $('#miniMark').innerHTML = `<img src="${MARK_IMG}" alt="" style="width:100%;height:100%">`;
   $$('#curSeg button').forEach(b => b.classList.toggle('on', b.dataset.cur === S.cur));
   $('#fxRow').style.display = S.cur === 'BDT' ? '' : 'none';
   document.body.classList.toggle('bdt', S.cur === 'BDT');
@@ -362,7 +363,6 @@ $('#curSeg').onclick = e => { if (e.target.dataset.cur) setCurrency(e.target.dat
 document.addEventListener('input', e => {
   const k = e.target.dataset?.k; if (!k) return;
   set(S, k, e.target.value);
-  if (k === 'settings.accent') $('#miniMark').innerHTML = MARK(S.settings.accent);
   if (k.startsWith('settings.')) renderCatalog();
   refresh();
 });

@@ -231,3 +231,9 @@ dialog::backdrop{z-index:10}
 .bdt .dollar:before{content:'Tk';font-size:11px}
 .bdt .dollar input{padding-left:28px!important}
 .bdt .item .calc .dollar{width:104px}
+
+/* brand lockup: logo mark + full-case name */
+.d-logo{gap:4.5mm}
+.d-logo img{height:16mm;max-width:20mm}
+.d-brand{font:700 21pt/1.05 'Space Grotesk';letter-spacing:-.01em;text-transform:none}
+.d-brand small{font:500 7.5pt Inter;letter-spacing:.14em;margin-top:1.6mm}
