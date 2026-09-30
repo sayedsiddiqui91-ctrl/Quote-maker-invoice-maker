@@ -238,3 +238,8 @@ dialog::backdrop{z-index:10}
 .d-brand{font:700 21pt/1.05 'Space Grotesk';letter-spacing:-.01em;text-transform:none}
 .d-brand small{font:500 7.5pt Inter;letter-spacing:.14em;margin-top:1.6mm}
 .add.wide{grid-column:1/-1}
+.d-flag{border:.3mm dashed #b8b8c2;border-radius:2mm;padding:2.5mm 4mm;margin:-2mm 0 7mm;font-size:8.5pt;color:#55555f;break-inside:avoid}
+.d-flag b{color:#15151a}
+.hrow{display:grid;grid-template-columns:1fr 78px auto 56px;gap:6px;align-items:center;margin-bottom:6px;font-size:12.5px;color:var(--mut)}
+.hrow input[type=number]{margin:0;padding:6px 8px}
+.hrow .chk{margin:0}

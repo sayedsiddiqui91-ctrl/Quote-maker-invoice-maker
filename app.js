@@ -171,6 +171,35 @@ function loadExample() {
 function modal(html, mount) { $('#dlgBody').innerHTML = html; mount && mount($('#dlgBody')); dlg.showModal(); }
 
 /* ---------- add: my time ---------- */
+/* ---------- add: hosting & domain ---------- */
+const HOSTING = [
+  { n: 'Domain name (.com)', d: 'Registered in your name', cost: 12, unit: 'yr', qty: 1 },
+  { n: 'Web hosting', d: 'Fast, secure hosting', cost: 10, unit: 'mo', qty: 12 },
+  { n: 'Business email', d: 'Custom-domain email inbox', cost: 6, unit: 'mo', qty: 12 },
+  { n: 'SSL certificate & backups', d: '', cost: 20, unit: 'yr', qty: 1 },
+  { n: 'Website maintenance', d: 'Updates, backups, small edits', cost: 0, price: 15, unit: 'mo', qty: 12 },
+];
+$('#aHost').onclick = () => {
+  modal(`<h3>🌐 Hosting &amp; domain</h3>
+    <p class="hint">Tick what you're billing. Amounts are what <b>you pay</b> per unit; your markup is added for the client.</p>
+    <div id="hRows">${HOSTING.map((h, i) => `<div class="hrow"><label class="chk"><input type="checkbox" data-i="${i}" ${i < 2 ? 'checked' : ''}> ${h.n}</label>
+      <input type="number" step="any" data-c="${i}" value="${+usd(h.cost || h.price).toFixed(2)}" title="price per unit"><span>/${h.unit} ×</span>
+      <input type="number" data-q="${i}" value="${h.qty}"></div>`).join('')}</div>
+    <label class="chk"><input type="checkbox" id="hMk" checked> Add my ${S.settings.markup}% markup</label>
+    <div class="sum" id="hSum"></div>
+    <button class="btn primary" id="hostAdd">Add to quote</button>`, m => {
+    const rows = () => $$('[data-i]:checked', m).map(c => { const i = +c.dataset.i, h = HOSTING[i], amt = num($(`[data-c="${i}"]`, m).value), q = num($(`[data-q="${i}"]`, m).value); return { h, amt, q }; });
+    const priceOf = (h, amt) => amt * ($('#hMk', m).checked && h.price == null ? 1 + num(S.settings.markup) / 100 : 1);
+    const draw = () => $('#hSum', m).innerHTML = `Client pays <b>${money(rows().reduce((a, r) => a + priceOf(r.h, r.amt) * r.q, 0))}</b>`;
+    m.addEventListener('input', draw); m.addEventListener('change', draw); draw();
+    $('#hostAdd', m).onclick = () => {
+      const d = S.cur === 'BDT' ? 0 : 2;
+      rows().forEach(({ h, amt, q }) => S.items.push({ id: uid(), cat: 'Hosting & Domain', name: h.n, desc: h.d, qty: q, unit: h.unit, price: +priceOf(h, amt).toFixed(d), cost: h.price == null ? amt : 0 }));
+      renderItems(); refresh(); toast('Added ✓'); dlg.close();
+    };
+  });
+};
+
 /* ---------- add: fixed price (no hours) ---------- */
 $('#aFixed').onclick = () => {
   const ideas = ['Website design & development', 'Landing page', 'Portfolio website', 'Logo & branding', 'Website redesign', 'Monthly maintenance'];
@@ -343,6 +372,7 @@ function renderDoc() {
       ${inv && num(S.paid) > 0 ? `<tr class="g"><td>Paid</td><td>−${money(S.paid)}</td></tr><tr class="dep"><td>Balance due</td><td>${money(t.balance)}</td></tr>` : ''}
       ${!inv && num(S.depositPct) > 0 ? `<tr class="g dep"><td>Deposit to start (${S.depositPct}%)</td><td>${money(t.deposit)}</td></tr>` : ''}
     </table></div>
+    ${S.noHosting !== false && !S.items.some(i => i.cat === 'Hosting & Domain') ? `<div class="d-flag"><b>Services only.</b> Domain name and hosting are not included in this ${inv ? 'invoice' : 'quote'} and are billed separately if needed.</div>` : ''}
     ${ms.length && !inv ? `<h3 class="d-sec">Timeline</h3><div class="d-ms">${ms.map(m => `<div><b>${esc(m[0])}</b><span>${esc(m[1] || '')}</span></div>`).join('')}</div>` : ''}
     ${!inv && (S.included || S.excluded) ? `<div class="d-cols"><div class="in"><h3 class="d-sec">Included</h3><ul>${lines(S.included).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div><div class="out"><h3 class="d-sec">Not included</h3><ul>${lines(S.excluded).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div>` : ''}
     ${S.payment ? `<h3 class="d-sec">Payment</h3><div class="d-pay">${esc(S.payment)}</div>` : ''}
@@ -361,7 +391,7 @@ function refresh() { renderDoc(); renderStats(); persist(); }
 
 /* ---------- bindings ---------- */
 function syncFields() {
-  $$('[data-k]').forEach(el => { if (el.type !== 'file') el.value = get(S, el.dataset.k) ?? ''; });
+  $$('[data-k]').forEach(el => { if (el.type === 'checkbox') el.checked = get(S, el.dataset.k) !== false; else if (el.type !== 'file') el.value = get(S, el.dataset.k) ?? ''; });
   const inv = S.type === 'invoice';
   $$('#typeSeg button').forEach(b => b.classList.toggle('on', b.dataset.type === S.type));
   $('#lblValid').style.display = inv ? 'none' : ''; $('#lblDue').style.display = inv ? '' : 'none';
@@ -383,7 +413,7 @@ function setCurrency(code) {
 $('#curSeg').onclick = e => { if (e.target.dataset.cur) setCurrency(e.target.dataset.cur); };
 document.addEventListener('input', e => {
   const k = e.target.dataset?.k; if (!k) return;
-  set(S, k, e.target.value);
+  set(S, k, e.target.type === 'checkbox' ? e.target.checked : e.target.value);
   if (k.startsWith('settings.')) renderCatalog();
   refresh();
 });
