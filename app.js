@@ -368,7 +368,7 @@ document.addEventListener('input', e => {
 });
 $('#typeSeg').onclick = e => {
   const ty = e.target.dataset.type; if (!ty || ty === S.type) return;
-  S.type = ty; S.number = S.number.replace(/-(Q|I)-/, ty === 'invoice' ? '-I-' : '-Q-');
+  S.type = ty; S.number = nextNumber(ty, S.id);
   syncFields(); refresh();
 };
 $('#logoFile').onchange = e => {
@@ -380,11 +380,16 @@ $('#logoReset').onclick = () => { logo = ''; localStorage.removeItem('btd-logo')
 /* ---------- save / open / new / pdf ---------- */
 const docs = () => load('btd-docs') || {};
 $('#btnSave').onclick = () => { const d = docs(); d[S.id] = S; localStorage.setItem('btd-docs', JSON.stringify(d)); flash('Saved ✓'); };
+// next free number for a type: BTD-I-0001, 0002… counted separately for quotes and invoices
+function nextNumber(type, skipId) {
+  const tag = type === 'invoice' ? 'I' : 'Q', d = docs(); let max = 0;
+  Object.values(d).forEach(x => { if (x.id === skipId) return; const m = String(x.number).match(new RegExp('^BTD-' + tag + '-([0-9]+)$')); if (m) max = Math.max(max, +m[1]); });
+  return `BTD-${tag}-${String(max + 1).padStart(4, '0')}`;
+}
 $('#btnNew').onclick = () => {
-  if (!confirm('Start a new document? (Unsaved changes are kept only if you pressed Save.)')) return;
-  const n = DEFAULT(); n.settings = S.settings; n.from = S.from; n.payment = S.payment; n.terms = S.terms;
-  const count = Object.keys(docs()).length + 1; n.number = `BTD-Q-${String(count + 1).padStart(4, '0')}`;
-  S = n; start();
+  if (S.client.name || S.items.length) { const d = docs(); d[S.id] = S; localStorage.setItem('btd-docs', JSON.stringify(d)); }  // auto-save current one first
+  const n = DEFAULT(); n.type = S.type; n.cur = S.cur; n.fx = S.fx; n.settings = S.settings; n.from = S.from; n.payment = S.payment; n.terms = S.terms;
+  n.number = nextNumber(n.type); S = n; start(); toast('New ' + n.type + ' ' + n.number);
 };
 $('#btnLoad').onclick = () => {
   const d = docs(), ids = Object.keys(d);
