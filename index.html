@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Break the Default — Quote & Invoice Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+<aside class="editor" id="editor">
+  <header class="topbar">
+    <div class="brandmini"><span class="mark" id="miniMark"></span><b>Quote Studio</b></div>
+    <div class="topright">
+      <button class="link" id="btnLoad">Open</button>
+      <button class="link" id="btnNew">New</button>
+      <div class="seg" id="typeSeg"><button data-type="quote">Quote</button><button data-type="invoice">Invoice</button></div>
+    </div>
+  </header>
+
+  <nav class="stepper" id="stepper">
+    <button data-s="1"><i>1</i>Client</button>
+    <button data-s="2"><i>2</i>Work &amp; costs</button>
+    <button data-s="3"><i>3</i>Finish</button>
+  </nav>
+
+  <div class="body">
+
+    <!-- STEP 1 -->
+    <section class="step" data-step="1">
+      <h2>Who is this for?</h2>
+      <p class="hint">Just the basics. You can leave anything blank.</p>
+      <label>Client name<input data-k="client.name" placeholder="e.g. Jane Doe"></label>
+      <label>Company <em>(optional)</em><input data-k="client.company"></label>
+      <label>Client email <em>(optional)</em><input data-k="client.email"></label>
+      <h2 style="margin-top:22px">What's the project?</h2>
+      <label>Project name<input data-k="project.title" placeholder="e.g. Brand website with scroll-driven hero"></label>
+      <label>Short description <em>(shown at the top of the PDF)</em><textarea rows="3" data-k="project.summary" placeholder="What are you building for them, in a sentence or two?"></textarea></label>
+      <div class="grid2">
+        <label>How long will it take?<input data-k="project.timeline" placeholder="3–4 weeks"></label>
+        <label>Scope <em>(optional)</em><input data-k="project.pages" placeholder="5 pages + blog"></label>
+      </div>
+      <details class="more"><summary>More client details</summary>
+        <label>Phone<input data-k="client.phone"></label>
+        <label>Address<textarea rows="2" data-k="client.address"></textarea></label>
+      </details>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="step" data-step="2">
+      <h2>What are you charging for?</h2>
+      <p class="hint">Tap a button to add a line. Each line becomes a row in the PDF.</p>
+      <div class="curbar">
+        <span>Currency</span>
+        <div class="seg" id="curSeg"><button data-cur="USD">$ USD</button><button data-cur="BDT">Tk BDT</button></div>
+        <span class="fx" id="fxRow" style="display:none">1 USD = <input type="number" data-k="fx" step="0.5" style="width:70px;display:inline-block;margin:0"> Tk</span>
+      </div>
+      <div class="addgrid">
+        <button class="add" id="aTime"><b>⏱ My time</b><small>Hours of design / coding</small></button>
+        <button class="add" id="aPaid"><b>🧾 Something I paid for</b><small>Domain, font, stock, plugin…</small></button>
+        <button class="add hot" id="aHero"><b>🎬 Scroll hero video</b><small>AI video + coding the effect</small></button>
+        <button class="add" id="aCat"><b>📚 Browse catalog</b><small>40+ ready-made lines</small></button>
+      </div>
+
+      <div id="items"></div>
+
+      <div class="ratebar">
+        <span>My hourly rate</span><span class="dollar"><input type="number" step="0.5" data-k="settings.rate" id="rate"></span>
+        <span>Markup on things I buy</span><span class="pct"><input type="number" data-k="settings.markup"></span>
+      </div>
+      <p class="hint small">Markup is added on top of what you paid, so you earn a little on every asset.</p>
+    </section>
+
+    <!-- STEP 3 -->
+    <section class="step" data-step="3">
+      <h2>Finish up</h2>
+      <div class="grid2">
+        <label>Discount<input type="number" data-k="discount.value" placeholder="0"></label>
+        <label>&nbsp;<select data-k="discount.type"><option value="pct">% off</option><option value="flat">$ off</option></select></label>
+        <label>Tax % <em>(if any)</em><input type="number" step="0.1" data-k="taxRate" placeholder="0"></label>
+        <label>Deposit to start %<input type="number" data-k="depositPct"></label>
+      </div>
+      <label id="lblPaid" style="display:none">Amount client already paid<input type="number" data-k="paid"></label>
+      <label id="lblStatus" style="display:none">Invoice status
+        <select data-k="status"><option value="unpaid">Unpaid</option><option value="partial">Partially paid</option><option value="paid">Paid</option></select></label>
+      <label id="lblDue" style="display:none">Due date<input type="date" data-k="dueDate"></label>
+      <label id="lblValid">Quote is valid for (days)<input type="number" data-k="validDays"></label>
+      <label>How should they pay you?<textarea rows="3" data-k="payment"></textarea></label>
+      <label>A personal note <em>(optional)</em><textarea rows="2" data-k="notes"></textarea></label>
+
+      <details class="more"><summary>Timeline, what's included &amp; terms</summary>
+        <label>Milestones <em>(one per line: Name | when)</em><textarea rows="4" data-k="milestones"></textarea></label>
+        <label>What's included <em>(one per line)</em><textarea rows="3" data-k="included"></textarea></label>
+        <label>What's NOT included <em>(one per line)</em><textarea rows="3" data-k="excluded"></textarea></label>
+        <label>Terms<textarea rows="5" data-k="terms"></textarea></label>
+      </details>
+      <details class="more"><summary>Document number &amp; dates</summary>
+        <div class="grid2">
+          <label>Number<input data-k="number"></label>
+          <label>Issue date<input type="date" data-k="date"></label>
+        </div>
+      </details>
+      <details class="more"><summary>My logo &amp; business details</summary>
+        <div class="grid2">
+          <label>Business name<input data-k="from.name"></label>
+          <label>Tagline<input data-k="from.tag"></label>
+          <label>My email<input data-k="from.email"></label>
+          <label>My website<input data-k="from.web"></label>
+          <label>Accent colour<input type="color" data-k="settings.accent"></label>
+          <label>Upload logo<input type="file" accept="image/*" id="logoFile"></label>
+        </div>
+        <button class="btn ghost" id="logoReset">Use default logo</button>
+      </details>
+      <div class="finish">
+        <button class="btn primary big" id="btnPdf">⬇ Download PDF</button>
+        <p class="hint small">A print window opens — choose <b>“Save as PDF”</b> as the printer.</p>
+      </div>
+    </section>
+
+    <div class="nav">
+      <button class="btn" id="back">← Back</button>
+      <button class="btn primary" id="next">Next →</button>
+    </div>
+  </div>
+
+  <footer class="bar">
+    <div class="stats" id="stats"></div>
+    <button class="btn" id="btnSave">Save</button>
+  </footer>
+</aside>
+
+<main class="stage"><div id="doc" class="doc"></div></main>
+</div>
+
+<dialog id="dlg"><div id="dlgBody"></div><div class="dlgfoot"><button class="btn" onclick="dlg.close()">Close</button></div></dialog>
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
